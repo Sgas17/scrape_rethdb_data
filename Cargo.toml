@@ -1,0 +1,45 @@
+[package]
+name = "scrape_rethdb_data"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Reth database
+reth-db = { git = "https://github.com/paradigmxyz/reth", features = ["mdbx"] }
+reth-primitives = { git = "https://github.com/paradigmxyz/reth" }
+
+# Alloy (modern Ethereum types) - must match reth's version
+alloy-primitives = { version = "1.4", features = ["serde"] }
+
+# Error handling
+eyre = "0.6"
+thiserror = "1.0"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Encoding/decoding
+hex = "0.4"
+
+# PostgreSQL
+tokio-postgres = "0.7"
+deadpool-postgres = "0.14"
+
+# Python bindings (optional)
+pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
+
+[lib]
+name = "scrape_rethdb_data"
+crate-type = ["rlib", "cdylib"]
+
+[features]
+default = []
+python = ["pyo3"]
+
+[[example]]
+name = "collect_pool_data"
+path = "examples/collect_pool_data.rs"
