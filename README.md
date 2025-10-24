@@ -219,6 +219,13 @@ This will:
 The validation tests:
 - **V2 Reserves**: reserve0, reserve1, blockTimestampLast
 - **V3 Slot0**: sqrtPriceX96, tick, observationIndex, observationCardinality, observationCardinalityNext, feeProtocol, unlocked
+- **V4 Slot0**: Same as V3, but tests the PoolManager singleton pattern
+
+For V4 testing, set additional environment variables:
+```bash
+export V4_POOL_MANAGER="0x..." # V4 PoolManager contract address
+export V4_POOL_ID="0x..."      # Pool ID (bytes32)
+```
 
 ## Module Structure
 

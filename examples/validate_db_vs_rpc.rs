@@ -35,6 +35,19 @@ sol! {
             bool unlocked
         );
     }
+
+    #[sol(rpc)]
+    contract IUniswapV4PoolManager {
+        function getSlot0(bytes32 poolId) external view returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
+    }
 }
 
 #[tokio::main]
@@ -68,6 +81,23 @@ async fn main() -> Result<()> {
     println!("📊 Testing V3 Pool (0.3%): {}", v3_pool_address_30bps);
     validate_v3_pool(&provider, &db_path, v3_pool_address_30bps, 60).await?;
     println!();
+
+    // Test V4 Pool (if V4_POOL_MANAGER and V4_POOL_ID are set)
+    if let (Ok(pool_manager), Ok(pool_id_hex)) = (
+        env::var("V4_POOL_MANAGER"),
+        env::var("V4_POOL_ID"),
+    ) {
+        let pool_manager_address: Address = pool_manager.parse()?;
+        let pool_id: alloy_primitives::FixedBytes<32> = pool_id_hex.parse()?;
+        println!("📊 Testing V4 Pool");
+        println!("  PoolManager: {}", pool_manager_address);
+        println!("  PoolId: {}", pool_id_hex);
+        validate_v4_pool(&provider, &db_path, pool_manager_address, pool_id, 60).await?;
+        println!();
+    } else {
+        println!("⏭️  Skipping V4 test (V4_POOL_MANAGER and V4_POOL_ID not set)");
+        println!();
+    }
 
     println!("✅ All validations passed!");
 
@@ -207,6 +237,96 @@ async fn validate_v3_pool(
     println!("  Ticks found: {}", db_data.ticks.len());
 
     println!("  ✅ V3 validation passed");
+
+    Ok(())
+}
+
+/// Validate V4 pool data: DB vs RPC
+async fn validate_v4_pool(
+    provider: &impl alloy::providers::Provider,
+    db_path: &str,
+    pool_manager: Address,
+    pool_id: alloy_primitives::FixedBytes<32>,
+    tick_spacing: i32,
+) -> Result<()> {
+    // Read from DB
+    let pool_input = PoolInput::new_v4(pool_manager, tick_spacing);
+    let db_results = collect_pool_data(
+        db_path,
+        &[pool_input],
+        Some(&[alloy_primitives::B256::from(pool_id)]),
+    )?;
+    let db_data = &db_results[0];
+
+    // Read from RPC
+    let contract = IUniswapV4PoolManager::new(pool_manager, provider);
+    let rpc_result = contract.getSlot0(pool_id).call().await?;
+
+    // Extract DB values
+    let db_slot0 = db_data.slot0.as_ref().expect("V4 should have slot0");
+
+    // Compare slot0 fields (same as V3)
+    println!("  sqrtPriceX96:");
+    println!("    DB:  {}", db_slot0.sqrt_price_x96);
+    println!("    RPC: {}", rpc_result.sqrtPriceX96);
+    let rpc_sqrt_price = alloy_primitives::U256::from(rpc_result.sqrtPriceX96);
+    assert_eq!(
+        db_slot0.sqrt_price_x96,
+        rpc_sqrt_price,
+        "sqrtPriceX96 mismatch!"
+    );
+
+    println!("  tick:");
+    println!("    DB:  {}", db_slot0.tick);
+    println!("    RPC: {}", rpc_result.tick);
+    let rpc_tick_i32: i32 = rpc_result.tick.as_i32();
+    assert_eq!(db_slot0.tick, rpc_tick_i32, "Tick mismatch!");
+
+    println!("  observationIndex:");
+    println!("    DB:  {}", db_slot0.observation_index);
+    println!("    RPC: {}", rpc_result.observationIndex);
+    assert_eq!(
+        db_slot0.observation_index, rpc_result.observationIndex,
+        "observationIndex mismatch!"
+    );
+
+    println!("  observationCardinality:");
+    println!("    DB:  {}", db_slot0.observation_cardinality);
+    println!("    RPC: {}", rpc_result.observationCardinality);
+    assert_eq!(
+        db_slot0.observation_cardinality, rpc_result.observationCardinality,
+        "observationCardinality mismatch!"
+    );
+
+    println!("  observationCardinalityNext:");
+    println!("    DB:  {}", db_slot0.observation_cardinality_next);
+    println!("    RPC: {}", rpc_result.observationCardinalityNext);
+    assert_eq!(
+        db_slot0.observation_cardinality_next, rpc_result.observationCardinalityNext,
+        "observationCardinalityNext mismatch!"
+    );
+
+    println!("  feeProtocol:");
+    println!("    DB:  {}", db_slot0.fee_protocol);
+    println!("    RPC: {}", rpc_result.feeProtocol);
+    assert_eq!(
+        db_slot0.fee_protocol, rpc_result.feeProtocol,
+        "feeProtocol mismatch!"
+    );
+
+    println!("  unlocked:");
+    println!("    DB:  {}", db_slot0.unlocked);
+    println!("    RPC: {}", rpc_result.unlocked);
+    assert_eq!(
+        db_slot0.unlocked, rpc_result.unlocked,
+        "unlocked mismatch!"
+    );
+
+    // Report bitmap and tick counts
+    println!("  Bitmaps found: {}", db_data.bitmaps.len());
+    println!("  Ticks found: {}", db_data.ticks.len());
+
+    println!("  ✅ V4 validation passed");
 
     Ok(())
 }
