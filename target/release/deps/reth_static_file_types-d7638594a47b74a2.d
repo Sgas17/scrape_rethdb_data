@@ -1,0 +1,10 @@
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/reth_static_file_types-d7638594a47b74a2.d: /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/lib.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/compression.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/event.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/segment.rs
+
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libreth_static_file_types-d7638594a47b74a2.rlib: /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/lib.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/compression.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/event.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/segment.rs
+
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libreth_static_file_types-d7638594a47b74a2.rmeta: /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/lib.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/compression.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/event.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/segment.rs
+
+/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/lib.rs:
+/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/compression.rs:
+/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/event.rs:
+/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/static-file/types/src/segment.rs:

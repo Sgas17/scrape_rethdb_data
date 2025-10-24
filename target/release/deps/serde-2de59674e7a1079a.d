@@ -1,0 +1,14 @@
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/serde-2de59674e7a1079a.d: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/sam-sullivan/scrape_rethdb_data/target/release/build/serde-4774f015b08c2bb3/out/private.rs
+
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libserde-2de59674e7a1079a.rlib: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/sam-sullivan/scrape_rethdb_data/target/release/build/serde-4774f015b08c2bb3/out/private.rs
+
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libserde-2de59674e7a1079a.rmeta: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/sam-sullivan/scrape_rethdb_data/target/release/build/serde-4774f015b08c2bb3/out/private.rs
+
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/sam-sullivan/scrape_rethdb_data/target/release/build/serde-4774f015b08c2bb3/out/private.rs:
+
+# env-dep:OUT_DIR=/home/sam-sullivan/scrape_rethdb_data/target/release/build/serde-4774f015b08c2bb3/out

@@ -1,0 +1,10 @@
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/tracing_logfmt-f1f8da319c39aa5c.d: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter/builder.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/serializer.rs
+
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libtracing_logfmt-f1f8da319c39aa5c.rlib: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter/builder.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/serializer.rs
+
+/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libtracing_logfmt-f1f8da319c39aa5c.rmeta: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter/builder.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/serializer.rs
+
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/lib.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/formatter/builder.rs:
+/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-logfmt-0.3.5/src/serializer.rs:

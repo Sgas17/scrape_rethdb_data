@@ -2,9 +2,9 @@ use eyre::Result;
 use scrape_rethdb_data::{collect_pool_data, PoolInput};
 
 fn main() -> Result<()> {
-    println!("=".repeat(80));
+    println!("{}", "=".repeat(80));
     println!("Uniswap Pool Data Collection Example");
-    println!("=".repeat(80));
+    println!("{}", "=".repeat(80));
 
     // Get database path from environment
     let db_path = std::env::var("RETH_DB_PATH")
@@ -77,9 +77,9 @@ fn main() -> Result<()> {
         println!();
     }
 
-    println!("=".repeat(80));
+    println!("{}", "=".repeat(80));
     println!("Collection complete!");
-    println!("=".repeat(80));
+    println!("{}", "=".repeat(80));
 
     // Optionally, export to JSON
     if std::env::var("EXPORT_JSON").is_ok() {

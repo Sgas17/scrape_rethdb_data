@@ -3,17 +3,22 @@
 Example of using scrape_rethdb_data from Python
 
 Installation:
-  1. Install maturin: pip install maturin
-  2. Build and install the Python module: maturin develop --features python
-  3. Run this script: python python_example.py
+  1. Install maturin: uv add --dev maturin
+  2. Build and install the Python module: uv run maturin develop --features python
+  3. Set RETH_DB_PATH in .env file
+  4. Run this script: uv run python python_example.py
 
 Or build a wheel:
-  maturin build --features python --release
+  uv run maturin build --features python --release
   pip install target/wheels/scrape_rethdb_data-*.whl
 """
 
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import the Rust library
 import scrape_rethdb_data
@@ -31,12 +36,7 @@ def main():
     pools = [
         # UniswapV3 pools with different tick spacings
         {
-            "address": "0xa83326d20b7003bcecf1f4684a2fbb56161e2a8e",
-            "protocol": "v3",
-            "tick_spacing": 60,
-        },
-        {
-            "address": "0x7736b5006d90d5d5c0ee8148f1ea07ef82ab1677",
+            "address": "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
             "protocol": "v3",
             "tick_spacing": 10,
         },
@@ -46,13 +46,24 @@ def main():
             "protocol": "v2",
             "tick_spacing": None,
         },
+	# UniswapV4 pool - requires pool_id to be passed separately
+	{
+	    "address": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+	    "protocol": "v4",
+	    "tick_spacing": 60,
+	},
+    ]
+
+    # V4 pool IDs (must be in same order as V4 pools in the list above)
+    v4_pool_ids = [
+        "0xdce6394339af00981949f5f3baf27e3610c76326a700af57e4b3e3ae4977f78d",
     ]
 
     print(f"\nCollecting data for {len(pools)} pools...\n")
 
     try:
         # Collect data (returns JSON string)
-        result_json = scrape_rethdb_data.collect_pools(db_path, pools)
+        result_json = scrape_rethdb_data.collect_pools(db_path, pools, v4_pool_ids)
 
         # Parse JSON
         results = json.loads(result_json)
@@ -61,6 +72,10 @@ def main():
         for idx, pool_data in enumerate(results):
             print(f"Pool {idx + 1} ({pool_data['address']}):")
             print(f"  Protocol: {pool_data['protocol']}")
+
+            # Display pool_id for V4 pools
+            if pool_data.get('pool_id'):
+                print(f"  Pool ID: {pool_data['pool_id']}")
 
             protocol = pool_data['protocol']
 
@@ -109,7 +124,9 @@ def main():
             print("\nData exported to pool_data.json")
 
     except Exception as e:
+        import traceback
         print(f"Error: {e}")
+        traceback.print_exc()
         return 1
 
     return 0

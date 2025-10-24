@@ -78,10 +78,16 @@ fn collect_pools(
                 .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>("Missing 'protocol'"))?
                 .extract()?;
 
-            let tick_spacing: Option<i32> = dict
-                .get_item("tick_spacing")?
-                .map(|v| v.extract())
-                .transpose()?;
+            let tick_spacing: Option<i32> = match dict.get_item("tick_spacing")? {
+                Some(v) => {
+                    if v.is_none() {
+                        None
+                    } else {
+                        Some(v.extract()?)
+                    }
+                }
+                None => None,
+            };
 
             let address = Address::from_str(&address_str)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid address: {}", e)))?;

@@ -15,6 +15,12 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+dependencies = [
+    "eth-hash[pycryptodome]>=0.7.1",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32.4",
+    "web3>=7.14.0",
+]
 
 [tool.maturin]
 features = ["python"]

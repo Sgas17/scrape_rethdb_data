@@ -10,6 +10,7 @@ reth-primitives = { git = "https://github.com/paradigmxyz/reth" }
 
 # Alloy (modern Ethereum types) - must match reth's version
 alloy-primitives = { version = "1.4", features = ["serde"] }
+alloy-sol-types = "1.4"
 
 # Error handling
 eyre = "0.6"

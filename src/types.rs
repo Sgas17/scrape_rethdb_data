@@ -1,4 +1,4 @@
-use alloy_primitives::{Address, U256};
+use alloy_primitives::{Address, B256, U256};
 use serde::{Deserialize, Serialize};
 
 /// Pool protocol type
@@ -51,6 +51,9 @@ impl PoolInput {
 /// UniswapV3/V4 Slot0 data
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Slot0 {
+    /// Raw storage value as hex string for Python decoding
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub raw_data: Option<String>,
     pub sqrt_price_x96: U256,
     pub tick: i32,
     pub observation_index: u16,
@@ -64,6 +67,9 @@ pub struct Slot0 {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Tick {
     pub tick: i32,
+    /// Raw storage value as hex string for Python decoding
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub raw_data: Option<String>,
     pub liquidity_gross: u128,
     pub liquidity_net: i128,
     pub fee_growth_outside_0_x128: U256,
@@ -84,6 +90,9 @@ pub struct Bitmap {
 /// UniswapV2 reserve data
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Reserves {
+    /// Raw storage value as hex string for Python decoding
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub raw_data: Option<String>,
     pub reserve0: u128,
     pub reserve1: u128,
     pub block_timestamp_last: u32,
@@ -94,6 +103,9 @@ pub struct Reserves {
 pub struct PoolOutput {
     pub address: Address,
     pub protocol: Protocol,
+    /// Pool ID (only for V4 pools)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pool_id: Option<B256>,
     /// V2 reserves (only for V2 pools)
     pub reserves: Option<Reserves>,
     /// Slot0 data (only for V3/V4 pools)
@@ -109,6 +121,7 @@ impl PoolOutput {
         Self {
             address,
             protocol: Protocol::UniswapV2,
+            pool_id: None,
             reserves: Some(reserves),
             slot0: None,
             ticks: Vec::new(),
@@ -116,16 +129,34 @@ impl PoolOutput {
         }
     }
 
-    pub fn new_v3_v4(
+    pub fn new_v3(
         address: Address,
-        protocol: Protocol,
         slot0: Slot0,
         ticks: Vec<Tick>,
         bitmaps: Vec<Bitmap>,
     ) -> Self {
         Self {
             address,
-            protocol,
+            protocol: Protocol::UniswapV3,
+            pool_id: None,
+            reserves: None,
+            slot0: Some(slot0),
+            ticks,
+            bitmaps,
+        }
+    }
+
+    pub fn new_v4(
+        address: Address,
+        pool_id: B256,
+        slot0: Slot0,
+        ticks: Vec<Tick>,
+        bitmaps: Vec<Bitmap>,
+    ) -> Self {
+        Self {
+            address,
+            protocol: Protocol::UniswapV4,
+            pool_id: Some(pool_id),
             reserves: None,
             slot0: Some(slot0),
             ticks,
