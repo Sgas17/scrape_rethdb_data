@@ -197,6 +197,29 @@ cargo test
 cargo test --features python
 ```
 
+### Validation: DB vs RPC
+
+To verify the correctness of our decoding logic, run the validation example that compares DB reads against RPC calls:
+
+```bash
+# Set database and RPC endpoint
+export RETH_DB_PATH="/path/to/reth/db"
+export RPC_URL="http://localhost:8545"  # Optional, defaults to localhost:8545
+
+# Run validation
+cargo run --example validate_db_vs_rpc
+```
+
+This will:
+- Read pool data directly from the database using our decoders
+- Fetch the same data via RPC using Alloy's type-safe contract calls
+- Compare all fields and assert they match
+- Report any discrepancies
+
+The validation tests:
+- **V2 Reserves**: reserve0, reserve1, blockTimestampLast
+- **V3 Slot0**: sqrtPriceX96, tick, observationIndex, observationCardinality, observationCardinalityNext, feeProtocol, unlocked
+
 ## Module Structure
 
 ```

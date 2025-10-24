@@ -46,6 +46,16 @@ export RETH_DB_PATH="/path/to/reth/db"
 cargo run --example collect_pool_data
 ```
 
+### 4. Validate decoding correctness
+
+Compare DB reads vs RPC to ensure data accuracy:
+
+```bash
+export RETH_DB_PATH="/path/to/reth/db"
+export RPC_URL="http://localhost:8545"  # Optional
+cargo run --example validate_db_vs_rpc
+```
+
 ## Using from Python
 
 ### 1. Install dependencies
