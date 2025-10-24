@@ -32,6 +32,7 @@ deadpool-postgres = "0.14"
 
 # Python bindings (optional)
 pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
+alloy = { version = "1.0.41", features = ["full"] }
 
 [lib]
 name = "scrape_rethdb_data"
