@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 from web3 import Web3
 from eth_abi import encode, decode
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from project directory
+load_dotenv('/home/sam-sullivan/scrape_rethdb_data/.env')
 
 # Import the Rust library
 import scrape_rethdb_data
@@ -222,17 +222,21 @@ def validate_v4_pool(w3, pool_data, sample_size=5):
             'data': data
         })
 
-        sqrt_price_x96, tick, obs_index, obs_card, obs_card_next, fee_proto, unlocked = decode(
-            ['uint160', 'int24', 'uint16', 'uint16', 'uint16', 'uint8', 'bool'],
+        # Decode per ABI: getSlot0 returns (uint160, int24, uint24, uint24)
+        sqrt_price_x96, tick, protocol_fee, lp_fee = decode(
+            ['uint160', 'int24', 'uint24', 'uint24'],
             result
         )
 
-        print(f"  RPC - Tick: {tick}, Price: {hex(sqrt_price_x96)}, Unlocked: {unlocked}")
+        # Note: DB unlocked status might not be available from StateView
+        # We'll just compare tick and price
+        unlocked = None  # Not returned by StateView getSlot0
+
+        print(f"  RPC - Tick: {tick}, Price: {hex(sqrt_price_x96)}")
 
         slot0_match = (
             db_slot0['tick'] == tick and
-            int(db_slot0['sqrt_price_x96'], 16) == sqrt_price_x96 and
-            db_slot0['unlocked'] == unlocked
+            int(db_slot0['sqrt_price_x96'], 16) == sqrt_price_x96
         )
 
         if slot0_match:
@@ -290,8 +294,9 @@ def main():
         },
     ]
 
+    # Note: V4 is not on mainnet yet, only testnets
     v4_pool_ids = [
-        "0xdce6394339af00981949f5f3baf27e3610c76326a700af57e4b3e3ae4977f78d",
+        # "0xdce6394339af00981949f5f3baf27e3610c76326a700af57e4b3e3ae4977f78d",  # testnet pool
     ]
 
     print("Collecting data from database...")

@@ -107,12 +107,16 @@ pub fn read_v3_pool<TX: DbTx>(
         let bitmap_slot = storage::bitmap_slot(*word_pos, v3::TICK_BITMAP);
 
         if let Some(entry) = cursor.seek_by_key_subkey(pool.address, bitmap_slot)? {
-            let value = entry.value;
-            if value != U256::ZERO {
-                bitmaps.push(Bitmap {
-                    word_pos: *word_pos,
-                    bitmap: value,
-                });
+            // IMPORTANT: seek_by_key_subkey returns first entry >= requested slot
+            // We must verify it's an EXACT match!
+            if entry.key == bitmap_slot {
+                let value = entry.value;
+                if value != U256::ZERO {
+                    bitmaps.push(Bitmap {
+                        word_pos: *word_pos,
+                        bitmap: value,
+                    });
+                }
             }
         }
     }
@@ -135,12 +139,15 @@ pub fn read_v3_pool<TX: DbTx>(
         let tick_slot = storage::tick_slot(tick_value, v3::TICKS);
 
         if let Some(entry) = cursor.seek_by_key_subkey(pool.address, tick_slot)? {
-            let value = entry.value;
-            if value != U256::ZERO {
-                // Parse tick data (simplified - tick data is stored across multiple slots)
-                let mut tick_data = parse_tick_data(tick_value, value);
-                tick_data.raw_data = Some(format!("0x{:064x}", value));
-                ticks.push(tick_data);
+            // Verify exact match
+            if entry.key == tick_slot {
+                let value = entry.value;
+                if value != U256::ZERO {
+                    // Parse tick data (simplified - tick data is stored across multiple slots)
+                    let mut tick_data = parse_tick_data(tick_value, value);
+                    tick_data.raw_data = Some(format!("0x{:064x}", value));
+                    ticks.push(tick_data);
+                }
             }
         }
     }
@@ -171,6 +178,7 @@ pub fn read_v4_pool<TX: DbTx>(
     let slot0_slot = storage::v4_slot0_slot(pool_id);
     let slot0_value = cursor
         .seek_by_key_subkey(pool.address, slot0_slot)?
+        .filter(|entry| entry.key == slot0_slot)  // Verify exact match!
         .map(|entry| entry.value)
         .unwrap_or(U256::ZERO);
 
@@ -186,12 +194,15 @@ pub fn read_v4_pool<TX: DbTx>(
         let bitmap_slot = storage::v4_bitmap_slot(pool_id, *word_pos);
 
         if let Some(entry) = cursor.seek_by_key_subkey(pool.address, bitmap_slot)? {
-            let value = entry.value;
-            if value != U256::ZERO {
-                bitmaps.push(Bitmap {
-                    word_pos: *word_pos,
-                    bitmap: value,
-                });
+            // Verify exact match
+            if entry.key == bitmap_slot {
+                let value = entry.value;
+                if value != U256::ZERO {
+                    bitmaps.push(Bitmap {
+                        word_pos: *word_pos,
+                        bitmap: value,
+                    });
+                }
             }
         }
     }
@@ -214,11 +225,14 @@ pub fn read_v4_pool<TX: DbTx>(
         let tick_slot = storage::v4_tick_slot(pool_id, tick_value);
 
         if let Some(entry) = cursor.seek_by_key_subkey(pool.address, tick_slot)? {
-            let value = entry.value;
-            if value != U256::ZERO {
-                let mut tick_data = parse_tick_data(tick_value, value);
-                tick_data.raw_data = Some(format!("0x{:064x}", value));
-                ticks.push(tick_data);
+            // Verify exact match
+            if entry.key == tick_slot {
+                let value = entry.value;
+                if value != U256::ZERO {
+                    let mut tick_data = parse_tick_data(tick_value, value);
+                    tick_data.raw_data = Some(format!("0x{:064x}", value));
+                    ticks.push(tick_data);
+                }
             }
         }
     }

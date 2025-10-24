@@ -1,4 +1,5 @@
 use alloy_primitives::{keccak256, B256, U256};
+use alloy_sol_types::SolValue;
 
 /// UniswapV3 storage slot constants
 pub mod v3 {
@@ -6,17 +7,19 @@ pub mod v3 {
     pub const FEE_GROWTH_GLOBAL0_X128: u8 = 1;
     pub const FEE_GROWTH_GLOBAL1_X128: u8 = 2;
     pub const PROTOCOL_FEES: u8 = 3;
-    pub const TICKS: u8 = 4;
-    pub const TICK_BITMAP: u8 = 5;
-    pub const POSITIONS: u8 = 6;
-    pub const OBSERVATIONS: u8 = 7;
+    pub const LIQUIDITY: u8 = 4;
+    pub const TICKS: u8 = 5;
+    pub const TICK_BITMAP: u8 = 6;
+    pub const POSITIONS: u8 = 7;
+    pub const OBSERVATIONS: u8 = 8;
 }
 
 /// UniswapV4 storage slot constants
 /// Note: V4 uses a singleton pattern with poolId-based mapping
 pub mod v4 {
     // Main pools mapping slot
-    pub const POOLS_SLOT: u8 = 0;
+    // Note: PoolManager inherits from multiple contracts, so _pools is at slot 6
+    pub const POOLS_SLOT: u8 = 6;
 
     // Offsets within Pool.State struct (relative to pool's base slot)
     pub const SLOT0_OFFSET: u8 = 0;
@@ -43,38 +46,20 @@ pub fn simple_slot(slot: u8) -> B256 {
 /// Calculate storage slot for mapping(int16 => uint256) tickBitmap
 /// Formula: keccak256(abi.encode(wordPos, mappingSlot))
 pub fn bitmap_slot(word_pos: i16, mapping_slot: u8) -> B256 {
-    let mut data = [0u8; 64];
-
-    // Encode word_pos as int16 with sign extension (left-padded to 32 bytes)
-    if word_pos < 0 {
-        data[0..30].fill(0xff); // Sign extension for negative
-    }
-    let word_pos_bytes = word_pos.to_be_bytes();
-    data[30..32].copy_from_slice(&word_pos_bytes);
-
-    // Encode mapping slot (left-padded to 32 bytes)
-    data[63] = mapping_slot;
-
-    keccak256(&data)
+    // Use alloy-sol-types for proper ABI encoding
+    // Encode as (int16, uint256) tuple
+    let encoded = (word_pos, U256::from(mapping_slot)).abi_encode();
+    keccak256(&encoded)
 }
 
 /// Calculate storage slot for mapping(int24 => Tick) ticks
 /// Formula: keccak256(abi.encode(tick, mappingSlot))
 pub fn tick_slot(tick: i32, mapping_slot: u8) -> B256 {
-    let mut data = [0u8; 64];
-
-    // Encode tick as int24 with sign extension (left-padded to 32 bytes)
-    if tick < 0 {
-        data[0..29].fill(0xff); // Sign extension for negative
-    }
-    let tick_bytes = tick.to_be_bytes();
-    // int24 uses 3 bytes
-    data[29..32].copy_from_slice(&tick_bytes[1..4]);
-
-    // Encode mapping slot (left-padded to 32 bytes)
-    data[63] = mapping_slot;
-
-    keccak256(&data)
+    // Use alloy-sol-types for proper ABI encoding
+    // Encode as (int24, uint256) tuple
+    // Note: i32 in Rust, but we treat it as int24 for ABI encoding
+    let encoded = (tick, U256::from(mapping_slot)).abi_encode();
+    keccak256(&encoded)
 }
 
 /// Calculate storage slot for V4 nested mapping (PoolId => mapping(int24 => Tick))
@@ -112,10 +97,10 @@ pub fn v4_slot0_slot(pool_id: B256) -> B256 {
 
 /// Helper: Get base storage slot for a V4 pool
 fn pool_base_slot(pool_id: B256) -> B256 {
-    let mut data = [0u8; 64];
-    data[0..32].copy_from_slice(pool_id.as_slice());
-    data[63] = v4::POOLS_SLOT;
-    keccak256(&data)
+    // Use alloy-sol-types for proper ABI encoding
+    // Encode as (bytes32, uint256) tuple
+    let encoded = (pool_id, U256::from(v4::POOLS_SLOT)).abi_encode();
+    keccak256(&encoded)
 }
 
 /// Helper: Add offset to a storage slot
@@ -127,36 +112,20 @@ fn add_offset(slot: B256, offset: u8) -> B256 {
 
 /// Helper: Calculate tick slot given a base mapping slot (as B256)
 fn tick_slot_from_base(tick: i32, mapping_slot: B256) -> B256 {
-    let mut data = [0u8; 64];
-
-    // Encode tick as int24
-    if tick < 0 {
-        data[0..29].fill(0xff);
-    }
-    let tick_bytes = tick.to_be_bytes();
-    data[29..32].copy_from_slice(&tick_bytes[1..4]);
-
-    // Encode mapping slot
-    data[32..64].copy_from_slice(mapping_slot.as_slice());
-
-    keccak256(&data)
+    // Use alloy-sol-types for proper ABI encoding
+    // Encode as (int24, bytes32) tuple - note the order!
+    let mapping_u256 = U256::from_be_bytes(*mapping_slot);
+    let encoded = (tick, mapping_u256).abi_encode();
+    keccak256(&encoded)
 }
 
 /// Helper: Calculate bitmap slot given a base mapping slot (as B256)
 fn bitmap_slot_from_base(word_pos: i16, mapping_slot: B256) -> B256 {
-    let mut data = [0u8; 64];
-
-    // Encode word_pos as int16
-    if word_pos < 0 {
-        data[0..30].fill(0xff);
-    }
-    let word_pos_bytes = word_pos.to_be_bytes();
-    data[30..32].copy_from_slice(&word_pos_bytes);
-
-    // Encode mapping slot
-    data[32..64].copy_from_slice(mapping_slot.as_slice());
-
-    keccak256(&data)
+    // Use alloy-sol-types for proper ABI encoding
+    // Encode as (int16, bytes32) tuple
+    let mapping_u256 = U256::from_be_bytes(*mapping_slot);
+    let encoded = (word_pos, mapping_u256).abi_encode();
+    keccak256(&encoded)
 }
 
 #[cfg(test)]

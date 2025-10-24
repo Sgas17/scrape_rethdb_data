@@ -1,12 +1,11 @@
-/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/scrape_rethdb_data.d: src/lib.rs src/readers.rs src/storage.rs src/tick_math.rs src/types.rs src/python.rs
+/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/scrape_rethdb_data.d: src/lib.rs src/readers.rs src/storage.rs src/tick_math.rs src/types.rs
 
-/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/libscrape_rethdb_data.rlib: src/lib.rs src/readers.rs src/storage.rs src/tick_math.rs src/types.rs src/python.rs
+/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/libscrape_rethdb_data.rlib: src/lib.rs src/readers.rs src/storage.rs src/tick_math.rs src/types.rs
 
-/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/libscrape_rethdb_data.so: src/lib.rs src/readers.rs src/storage.rs src/tick_math.rs src/types.rs src/python.rs
+/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/libscrape_rethdb_data.so: src/lib.rs src/readers.rs src/storage.rs src/tick_math.rs src/types.rs
 
 src/lib.rs:
 src/readers.rs:
 src/storage.rs:
 src/tick_math.rs:
 src/types.rs:
-src/python.rs:
