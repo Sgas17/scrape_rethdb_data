@@ -116,21 +116,40 @@ pub fn decode_slot0(storage_value: U256) -> Result<Slot0> {
 
 /// Decode tick info from storage
 ///
-/// Note: Tick data spans multiple storage slots in practice
-/// This is a simplified version that reads the first slot
+/// Uniswap V3/V4 Tick storage layout (slot 0):
+/// - Bits 0-127: liquidityGross (uint128)
+/// - Bits 128-255: liquidityNet (int128)
+///
+/// Note: Additional tick data (fee growth, etc.) is in subsequent slots
+/// but we only need liquidity values for basic functionality
 pub fn decode_tick_info(tick: i32, storage_value: U256) -> Result<Tick> {
     let raw_hex = format!("0x{:064x}", storage_value);
 
-    // For now, just mark as initialized if non-zero
-    // Full implementation would read multiple slots
     let initialized = storage_value != U256::ZERO;
+
+    // Extract liquidityGross (lower 128 bits)
+    let liquidity_gross_mask = (U256::from(1u128) << 128) - U256::from(1u128);
+    let liquidity_gross_u256: U256 = storage_value & liquidity_gross_mask;
+    let liquidity_gross = liquidity_gross_u256.to::<u128>();
+
+    // Extract liquidityNet (upper 128 bits, signed int128)
+    let liquidity_net_u256: U256 = storage_value >> 128;
+    let liquidity_net_raw = liquidity_net_u256.to::<u128>();
+
+    // Convert to signed int128 using two's complement
+    let liquidity_net = if liquidity_net_raw > (u128::MAX / 2) {
+        // Negative number in two's complement
+        -(((!liquidity_net_raw).wrapping_add(1)) as i128)
+    } else {
+        liquidity_net_raw as i128
+    };
 
     Ok(Tick {
         tick,
         raw_data: Some(raw_hex),
-        liquidity_gross: 0, // TODO: Read from correct slot
-        liquidity_net: 0,   // TODO: Read from correct slot
-        fee_growth_outside_0_x128: U256::ZERO,
+        liquidity_gross,
+        liquidity_net,
+        fee_growth_outside_0_x128: U256::ZERO,  // Would need to read additional slots
         fee_growth_outside_1_x128: U256::ZERO,
         tick_cumulative_outside: 0,
         seconds_per_liquidity_outside_x128: U256::ZERO,
