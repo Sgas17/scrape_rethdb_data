@@ -1,9 +1,0 @@
-/home/sam-sullivan/scrape_rethdb_data/target/release/deps/reth_zstd_compressors-f98125f526cd810d.d: /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/lib.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../receipt_dictionary.bin /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../transaction_dictionary.bin
-
-/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libreth_zstd_compressors-f98125f526cd810d.rlib: /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/lib.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../receipt_dictionary.bin /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../transaction_dictionary.bin
-
-/home/sam-sullivan/scrape_rethdb_data/target/release/deps/libreth_zstd_compressors-f98125f526cd810d.rmeta: /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/lib.rs /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../receipt_dictionary.bin /home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../transaction_dictionary.bin
-
-/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/lib.rs:
-/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../receipt_dictionary.bin:
-/home/sam-sullivan/.cargo/git/checkouts/reth-e231042ee7db3fb7/71f91cf/crates/storage/zstd-compressors/src/../transaction_dictionary.bin:

@@ -1,1 +1,0 @@
-(alloy_sol_types::sol_data::Uint<112>, alloy_sol_types::sol_data::Uint<112>, alloy_sol_types::sol_data::Uint<32>)

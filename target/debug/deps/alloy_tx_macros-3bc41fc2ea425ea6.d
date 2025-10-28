@@ -1,9 +1,0 @@
-/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/alloy_tx_macros-3bc41fc2ea425ea6.d: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/expand.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/parse.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/serde.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/../README.md
-
-/home/sam-sullivan/scrape_rethdb_data/target/debug/deps/liballoy_tx_macros-3bc41fc2ea425ea6.so: /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/lib.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/expand.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/parse.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/serde.rs /home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/../README.md
-
-/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/lib.rs:
-/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/expand.rs:
-/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/parse.rs:
-/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/serde.rs:
-/home/sam-sullivan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloy-tx-macros-1.0.41/src/../README.md:
