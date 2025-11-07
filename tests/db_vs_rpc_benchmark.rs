@@ -85,9 +85,10 @@ async fn test_v3_slot0_db_vs_rpc() {
     println!("\n=== V3 Slot0 Test ===");
     println!("Pool: {}", pool_address);
 
-    // Time DB read
+    // Time DB read (slot0 only for fair comparison with RPC)
     let db_start = Instant::now();
-    let pool_input = PoolInput::new_v3(pool_address, tick_spacing);
+    let mut pool_input = PoolInput::new_v3(pool_address, tick_spacing);
+    pool_input.slot0_only = true; // Only read slot0 + liquidity, not ticks/bitmaps
     let db_results = collect_pool_data(&db_path, &[pool_input], None).unwrap();
     let db_duration = db_start.elapsed();
 
@@ -209,9 +210,10 @@ async fn test_historical_query_db_vs_rpc() {
     println!("Pool: {}", pool_address);
     println!("Block: {}", block_number);
 
-    // Time DB read
+    // Time DB read (slot0 only for fair comparison with RPC)
     let db_start = Instant::now();
-    let pool_input = PoolInput::new_v3(pool_address, tick_spacing);
+    let mut pool_input = PoolInput::new_v3(pool_address, tick_spacing);
+    pool_input.slot0_only = true; // Only read slot0 + liquidity, not ticks/bitmaps
     let db_results = collect_pool_data_at_block(&db_path, &[pool_input], None, block_number).unwrap();
     let db_duration = db_start.elapsed();
 
@@ -373,11 +375,13 @@ async fn test_batch_pool_query_performance() {
     println!("\n=== Batch Pool Query Performance Test ===");
     println!("Pools: {}", pools.len());
 
-    // Time DB batch read
+    // Time DB batch read (slot0 + liquidity only for fair comparison with RPC)
     let pool_inputs: Vec<_> = pools
         .iter()
         .map(|(addr, spacing)| {
-            PoolInput::new_v3(Address::from_str(addr).unwrap(), *spacing)
+            let mut input = PoolInput::new_v3(Address::from_str(addr).unwrap(), *spacing);
+            input.slot0_only = true; // Only read slot0 + liquidity, not ticks/bitmaps
+            input
         })
         .collect();
 

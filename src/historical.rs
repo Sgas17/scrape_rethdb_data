@@ -106,6 +106,11 @@ pub fn read_v3_pool_at_block<TX: DbTx>(
     let liquidity_value = get_storage_at_block(tx, pool.address, liquidity_slot, block_number)?;
     let liquidity = liquidity_value.to::<u128>();
 
+    // If slot0_only mode, return early without reading ticks/bitmaps
+    if pool.slot0_only {
+        return Ok(PoolOutput::new_v3(pool.address, slot0, liquidity, vec![], vec![]));
+    }
+
     // Generate word positions to query based on tick spacing
     let word_positions = tick_math::generate_word_positions(tick_spacing);
 
@@ -189,6 +194,11 @@ pub fn read_v4_pool_at_block<TX: DbTx>(
     let liquidity_slot = crate::storage::v4_liquidity_slot(pool_id);
     let liquidity_value = get_storage_at_block(tx, pool.address, liquidity_slot, block_number)?;
     let liquidity = liquidity_value.to::<u128>();
+
+    // If slot0_only mode, return early without reading ticks/bitmaps
+    if pool.slot0_only {
+        return Ok(PoolOutput::new_v4(pool.address, pool_id, slot0, liquidity, vec![], vec![]));
+    }
 
     // Generate word positions to query based on tick spacing
     let word_positions = tick_math::generate_word_positions(tick_spacing);
