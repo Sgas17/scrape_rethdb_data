@@ -6,7 +6,7 @@
 use alloy_primitives::{Address, B256, U256};
 use eyre::{eyre, Result};
 use reth_db::{
-    cursor::DbCursorRO,
+    cursor::{DbCursorRO, DbDupCursorRO},
     tables,
     transaction::DbTx,
 };
@@ -23,60 +23,69 @@ use crate::{
 
 /// Query storage value at a specific block number using changesets
 ///
-/// This function:
-/// 1. Reads StorageChangeSets to find changes to this storage slot
-/// 2. Walks backwards from target block to find the most recent change
-/// 3. Returns the value as it was at the target block
+/// This function uses Reth's StoragesHistory index for efficient lookups:
+/// 1. Query StoragesHistory to find blocks where this storage slot changed
+/// 2. Find the most recent change at or before target block
+/// 3. Read the value from StorageChangeSets at that block
+/// 4. Falls back to current state if no history exists
+///
+/// Performance: O(log n) where n = number of changes to this slot
+/// (vs O(total_changesets) for naive iteration)
 pub fn get_storage_at_block<TX: DbTx>(
     tx: &TX,
     address: Address,
     storage_key: B256,
     block_number: BlockNumber,
 ) -> Result<U256> {
-    // Strategy:
-    // 1. Open a cursor on StorageChangeSets
-    // 2. Seek to (block_number, address, storage_key)
-    // 3. Walk backwards to find the most recent change for this address+key at or before target block
-    // 4. If found, return that value
-    // 5. If not found, the slot was never set before this block, return ZERO
+    use reth_db::models::storage_sharded_key::StorageShardedKey;
 
-    let mut changeset_cursor = tx.cursor_read::<tables::StorageChangeSets>()?;
+    // Step 1: Use StoragesHistory index to find blocks where this slot changed
+    // The history key includes the block number for sharding purposes
+    let history_key = StorageShardedKey::new(address, storage_key, block_number);
+    let mut history_cursor = tx.cursor_read::<tables::StoragesHistory>()?;
 
-    // Walk through all changesets for this address starting from block 0
-    // and find the highest block <= target where this key changed
-    let mut found_value = None;
-    let mut found_block = 0u64;
+    // Seek to find the history chunk
+    if let Some((key, block_list)) = history_cursor.seek(history_key)? {
+        // Verify this is the correct storage slot (seek returns next key if exact not found)
+        if key.address == address && key.sharded_key.key == storage_key {
+            // Step 2: Use rank/select to find the highest block <= target block
+            // rank() returns the number of blocks <= our target
+            let mut rank = block_list.rank(block_number);
 
-    // Iterate through all changesets
-    if let Some(first_entry) = changeset_cursor.first()? {
-        let mut current_entry = Some(first_entry);
-
-        while let Some((key, entry_value)) = current_entry {
-            // BlockNumberAddress has methods: block_number(), address()
-            // entry_value is StorageEntry with key and value fields
-
-            // Stop if we've passed our target block
-            if key.block_number() > block_number {
-                break;
+            // Adjust rank to get the block strictly before (not equal to) our target
+            if rank.checked_sub(1).and_then(|r| block_list.select(r)) == Some(block_number) {
+                rank -= 1;
             }
 
-            // Check if this is for our address and storage key
-            if key.address() == address && entry_value.key == storage_key {
-                // This is a relevant change at or before our target block
-                // entry_value.value is the U256 storage value
-                if key.block_number() >= found_block {
-                    found_value = Some(entry_value.value);
-                    found_block = key.block_number();
+            let change_block = block_list.select(rank);
+
+            // Step 3: If we found a relevant change, read it from StorageChangeSets
+            if let Some(change_block) = change_block {
+                let mut changeset_cursor = tx.cursor_dup_read::<tables::StorageChangeSets>()?;
+
+                // Use seek_by_key_subkey for efficient lookup
+                if let Some(entry) = changeset_cursor
+                    .seek_by_key_subkey((change_block, address).into(), storage_key)?
+                {
+                    // Verify exact match (seek_by_key_subkey returns >= requested)
+                    if entry.key == storage_key {
+                        return Ok(entry.value);
+                    }
                 }
             }
-
-            // Move to next entry
-            current_entry = changeset_cursor.next()?;
         }
     }
 
-    // Return the found value, or ZERO if never set
-    Ok(found_value.unwrap_or(U256::ZERO))
+    // Step 4: No history found - fall back to current state
+    let mut storage_cursor = tx.cursor_dup_read::<tables::PlainStorageState>()?;
+    if let Some(entry) = storage_cursor.seek_by_key_subkey(address, storage_key)? {
+        if entry.key == storage_key {
+            return Ok(entry.value);
+        }
+    }
+
+    // Slot was never set
+    Ok(U256::ZERO)
 }
 
 /// Read V3 pool data at a specific block number
