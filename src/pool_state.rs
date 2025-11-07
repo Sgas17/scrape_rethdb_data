@@ -5,21 +5,19 @@
 
 use alloy_primitives::{Address, U256, B256};
 use eyre::Result;
-use reth_db::cursor::DbCursorRO;
 use reth_db::transaction::DbTx;
-use reth_db::DatabaseEnv;
-use reth_db_api::cursor::DbDupCursorRO;
+use reth_db::cursor::DbDupCursorRO;
+use reth_db::tables;
 
-use crate::storage::{self, v3, v4};
-use crate::tables;
-use crate::types::{PoolInput, PoolStateOutput, Protocol};
-use crate::readers::parse_slot0;
+use crate::storage::{self, v3};
+use crate::types::{PoolInput, PoolOutput};
+use crate::decoding::decode_slot0;
 
 /// Read lightweight V3 pool state (slot0 + liquidity only)
 pub fn read_v3_pool_state<TX: DbTx>(
     tx: &TX,
     pool: &PoolInput,
-) -> Result<PoolStateOutput> {
+) -> Result<PoolOutput> {
     let mut cursor = tx.cursor_dup_read::<tables::PlainStorageState>()?;
 
     // Read slot0
@@ -36,10 +34,12 @@ pub fn read_v3_pool_state<TX: DbTx>(
     // Extract liquidity as u128 (it's stored in lower 128 bits)
     let liquidity = liquidity_value.to::<u128>();
 
-    Ok(PoolStateOutput::new_v3(
+    Ok(PoolOutput::new_v3(
         pool.address,
         slot0,
         liquidity,
+        Vec::new(), // No ticks in slot0_only mode
+        Vec::new(), // No bitmaps in slot0_only mode
     ))
 }
 
@@ -48,7 +48,7 @@ pub fn read_v4_pool_state<TX: DbTx>(
     tx: &TX,
     pool: &PoolInput,
     pool_id: B256,
-) -> Result<PoolStateOutput> {
+) -> Result<PoolOutput> {
     let mut cursor = tx.cursor_dup_read::<tables::PlainStorageState>()?;
 
     // Read slot0 for this poolId
@@ -59,7 +59,7 @@ pub fn read_v4_pool_state<TX: DbTx>(
         .map(|entry| entry.value)
         .unwrap_or(U256::ZERO);
 
-    let mut slot0 = parse_slot0(slot0_value);
+    let mut slot0 = decode_slot0(slot0_value)?;
     slot0.raw_data = Some(format!("0x{:064x}", slot0_value));
 
     // Read liquidity
@@ -72,11 +72,13 @@ pub fn read_v4_pool_state<TX: DbTx>(
 
     let liquidity = liquidity_value.to::<u128>();
 
-    Ok(PoolStateOutput::new_v4(
+    Ok(PoolOutput::new_v4(
         pool.address,
         pool_id,
         slot0,
         liquidity,
+        Vec::new(), // No ticks in slot0_only mode
+        Vec::new(), // No bitmaps in slot0_only mode
     ))
 }
 
@@ -94,7 +96,7 @@ fn read_slot0_helper<C: DbDupCursorRO<tables::PlainStorageState>>(
         .map(|entry| entry.value)
         .unwrap_or(U256::ZERO);
 
-    let mut slot0 = parse_slot0(value);
+    let mut slot0 = decode_slot0(value)?;
     slot0.raw_data = Some(format!("0x{:064x}", value));
     Ok(slot0)
 }

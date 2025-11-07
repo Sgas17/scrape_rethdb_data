@@ -71,6 +71,13 @@ V3_POOL_ABI = [
         "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "liquidity",
+        "outputs": [{"internalType": "uint128", "name": "", "type": "uint128"}],
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
 
@@ -189,7 +196,7 @@ def verify_v3_db_vs_rpc(
     print("\n--- Step 4: Compare Slot0 ---")
     db_slot0 = db_data['slot0']
 
-    sqrt_match = int(db_slot0['sqrt_price_x96']) == slot0_rpc[0]
+    sqrt_match = int(db_slot0['sqrt_price_x96'], 0) == slot0_rpc[0]
     tick_match = db_slot0['tick'] == slot0_rpc[1]
 
     print(f"sqrtPriceX96 match: {sqrt_match}")
@@ -245,7 +252,7 @@ def verify_v3_db_vs_rpc(
 
         if word_pos in db_bitmaps_lookup:
             db_bitmap = db_bitmaps_lookup[word_pos]
-            bitmap_match = int(db_bitmap['bitmap']) == rpc_bitmap
+            bitmap_match = int(db_bitmap['bitmap'], 0) == rpc_bitmap
 
             if bitmap_match:
                 bitmap_matches += 1
@@ -351,7 +358,7 @@ def verify_v4_db_vs_rpc(
     print("\n--- Step 4: Compare Slot0 ---")
     db_slot0 = db_data['slot0']
 
-    sqrt_match = int(db_slot0['sqrt_price_x96']) == slot0_rpc[0]
+    sqrt_match = int(db_slot0['sqrt_price_x96'], 0) == slot0_rpc[0]
     tick_match = db_slot0['tick'] == slot0_rpc[1]
 
     print(f"sqrtPriceX96 match: {sqrt_match}")
@@ -407,7 +414,7 @@ def verify_v4_db_vs_rpc(
 
         if word_pos in db_bitmaps_lookup:
             db_bitmap = db_bitmaps_lookup[word_pos]
-            bitmap_match = int(db_bitmap['bitmap']) == rpc_bitmap
+            bitmap_match = int(db_bitmap['bitmap'], 0) == rpc_bitmap
 
             if bitmap_match:
                 bitmap_matches += 1
@@ -447,6 +454,98 @@ def verify_v4_db_vs_rpc(
         "tick_mismatches": tick_mismatches,
         "bitmap_matches": bitmap_matches,
         "bitmap_mismatches": bitmap_mismatches,
+    }
+
+
+def test_slot0_only_mode(w3: Web3, db_path: str) -> Dict[str, Any]:
+    """Test slot0_only flag - should return only slot0 + liquidity, no ticks/bitmaps"""
+    print("\n" + "=" * 80)
+    print("SLOT0_ONLY MODE TEST")
+    print("=" * 80)
+
+    # Test V3 pool
+    v3_pool = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640"
+    print(f"\nTesting V3 Pool: {v3_pool}")
+    print(f"DB Path: {db_path}")
+
+    # Get RPC data
+    pool = w3.eth.contract(address=w3.to_checksum_address(v3_pool), abi=V3_POOL_ABI)
+    slot0_rpc = pool.functions.slot0().call()
+    liquidity_rpc = pool.functions.liquidity().call()
+    tick_spacing = pool.functions.tickSpacing().call()
+
+    print(f"\n--- RPC Data ---")
+    print(f"Tick: {slot0_rpc[1]}")
+    print(f"sqrtPriceX96: {slot0_rpc[0]}")
+    print(f"Liquidity: {liquidity_rpc}")
+
+    # Collect with slot0_only=True
+    print(f"\n--- Collecting with slot0_only=True ---")
+    pools = [{
+        "address": v3_pool,
+        "protocol": "v3",
+        "tick_spacing": tick_spacing,
+        "slot0_only": True
+    }]
+
+    result_json = scrape_rethdb_data.collect_pools(db_path, pools, [])
+    db_data = json.loads(result_json)[0]
+
+    # Verify structure
+    print(f"✓ Data collected")
+    print(f"  Has slot0: {'slot0' in db_data}")
+    print(f"  Has liquidity: {'liquidity' in db_data}")
+    print(f"  Ticks count: {len(db_data.get('ticks', []))}")
+    print(f"  Bitmaps count: {len(db_data.get('bitmaps', []))}")
+
+    # Check that slot0_only mode works correctly
+    has_slot0 = 'slot0' in db_data
+    has_liquidity = 'liquidity' in db_data
+    no_ticks = len(db_data.get('ticks', [])) == 0
+    no_bitmaps = len(db_data.get('bitmaps', [])) == 0
+
+    structure_valid = has_slot0 and has_liquidity and no_ticks and no_bitmaps
+
+    if not structure_valid:
+        print("\n✗ FAILED: slot0_only mode should return only slot0 + liquidity")
+        return {'passed': False, 'mode': 'slot0_only'}
+
+    print(f"\n--- Comparing Values ---")
+
+    # Compare slot0
+    db_slot0 = db_data['slot0']
+    sqrt_match = int(db_slot0['sqrt_price_x96'], 0) == slot0_rpc[0]
+    tick_match = db_slot0['tick'] == slot0_rpc[1]
+
+    print(f"sqrtPriceX96 match: {sqrt_match}")
+    print(f"  DB:  {db_slot0['sqrt_price_x96']}")
+    print(f"  RPC: {slot0_rpc[0]}")
+    print(f"tick match: {tick_match}")
+    print(f"  DB:  {db_slot0['tick']}")
+    print(f"  RPC: {slot0_rpc[1]}")
+
+    # Compare liquidity
+    liquidity_match = db_data['liquidity'] == liquidity_rpc
+    print(f"liquidity match: {liquidity_match}")
+    print(f"  DB:  {db_data['liquidity']}")
+    print(f"  RPC: {liquidity_rpc}")
+
+    all_match = sqrt_match and tick_match and liquidity_match
+
+    print("\n" + "=" * 80)
+    if all_match and structure_valid:
+        print("✓ SLOT0_ONLY MODE TEST PASSED")
+    else:
+        print("✗ SLOT0_ONLY MODE TEST FAILED")
+    print("=" * 80)
+
+    return {
+        'passed': all_match and structure_valid,
+        'mode': 'slot0_only',
+        'sqrt_match': sqrt_match,
+        'tick_match': tick_match,
+        'liquidity_match': liquidity_match,
+        'structure_valid': structure_valid
     }
 
 
@@ -493,6 +592,10 @@ def main():
     )
     results.append(result)
 
+    # Test slot0_only mode
+    result = test_slot0_only_mode(w3, db_path)
+    results.append(result)
+
     # Summary
     print("\n" + "=" * 80)
     print("FINAL SUMMARY")
@@ -500,11 +603,20 @@ def main():
 
     for result in results:
         status = "✓ PASSED" if result['passed'] else "✗ FAILED"
-        print(f"\n{result['protocol'].upper()} Pool: {status}")
-        print(f"  Pool: {result['pool']}")
-        print(f"  Slot0 match: {result['slot0_match']}")
-        print(f"  Tick comparisons: {result['tick_matches']} matches, {result['tick_mismatches']} mismatches")
-        print(f"  Bitmap comparisons: {result['bitmap_matches']} matches, {result['bitmap_mismatches']} mismatches")
+
+        # Handle slot0_only test differently
+        if result.get('mode') == 'slot0_only':
+            print(f"\nSlot0_Only Mode Test: {status}")
+            print(f"  Structure valid: {result['structure_valid']}")
+            print(f"  sqrtPriceX96 match: {result['sqrt_match']}")
+            print(f"  Tick match: {result['tick_match']}")
+            print(f"  Liquidity match: {result['liquidity_match']}")
+        else:
+            print(f"\n{result['protocol'].upper()} Pool: {status}")
+            print(f"  Pool: {result['pool']}")
+            print(f"  Slot0 match: {result['slot0_match']}")
+            print(f"  Tick comparisons: {result['tick_matches']} matches, {result['tick_mismatches']} mismatches")
+            print(f"  Bitmap comparisons: {result['bitmap_matches']} matches, {result['bitmap_mismatches']} mismatches")
 
     all_passed = all(r['passed'] for r in results)
     print("\n" + "=" * 80)

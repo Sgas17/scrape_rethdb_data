@@ -101,6 +101,12 @@ pub fn v4_base_slot(pool_id: B256) -> B256 {
     pool_base_slot(pool_id)
 }
 
+/// Calculate V4 liquidity storage slot
+pub fn v4_liquidity_slot(pool_id: B256) -> B256 {
+    let base_slot = pool_base_slot(pool_id);
+    add_offset(base_slot, v4::LIQUIDITY_OFFSET)
+}
+
 /// Helper: Get base storage slot for a V4 pool
 fn pool_base_slot(pool_id: B256) -> B256 {
     // Use alloy-sol-types for proper ABI encoding

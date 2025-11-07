@@ -2,6 +2,7 @@ pub mod contracts;
 pub mod decoding;
 pub mod events;
 pub mod historical;
+pub mod pool_state;
 pub mod readers;
 pub mod storage;
 pub mod tick_math;
@@ -40,6 +41,7 @@ pub use types::{Bitmap, HistoricalPoolOutput, PoolInput, PoolOutput, Protocol, R
 ///         address: "0x1234...".parse().unwrap(),
 ///         protocol: Protocol::UniswapV3,
 ///         tick_spacing: Some(60),
+///         slot0_only: false,
 ///     },
 /// ];
 ///
@@ -65,7 +67,13 @@ pub fn collect_pool_data(
                 results.push(output);
             }
             Protocol::UniswapV3 => {
-                let output = readers::read_v3_pool(&tx, pool)?;
+                let output = if pool.slot0_only {
+                    // Lightweight read: only slot0 + liquidity
+                    pool_state::read_v3_pool_state(&tx, pool)?
+                } else {
+                    // Full read: slot0 + liquidity + ticks + bitmaps
+                    readers::read_v3_pool(&tx, pool)?
+                };
                 results.push(output);
             }
             Protocol::UniswapV4 => {
@@ -84,7 +92,13 @@ pub fn collect_pool_data(
                 let pool_id = pool_ids[v4_pool_id_idx];
                 v4_pool_id_idx += 1;
 
-                let output = readers::read_v4_pool(&tx, pool, pool_id)?;
+                let output = if pool.slot0_only {
+                    // Lightweight read: only slot0 + liquidity
+                    pool_state::read_v4_pool_state(&tx, pool, pool_id)?
+                } else {
+                    // Full read: slot0 + liquidity + ticks + bitmaps
+                    readers::read_v4_pool(&tx, pool, pool_id)?
+                };
                 results.push(output);
             }
         }

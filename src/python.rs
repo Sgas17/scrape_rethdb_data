@@ -94,6 +94,11 @@ fn collect_pools(
                 None => None,
             };
 
+            let slot0_only: bool = match dict.get_item("slot0_only")? {
+                Some(v) => v.extract().unwrap_or(false),
+                None => false,
+            };
+
             let address = Address::from_str(&address_str)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid address: {}", e)))?;
 
@@ -110,6 +115,7 @@ fn collect_pools(
                 address,
                 protocol,
                 tick_spacing,
+                slot0_only,
             })
         })
         .collect();

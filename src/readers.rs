@@ -55,6 +55,14 @@ pub fn read_v3_pool<TX: DbTx>(
 
     let slot0 = decoding::decode_slot0(slot0_value)?;
 
+    // Read liquidity from slot 4
+    let liquidity_slot = storage::simple_slot(v3::LIQUIDITY);
+    let liquidity_value = cursor
+        .seek_by_key_subkey(pool.address, liquidity_slot)?
+        .map(|entry| entry.value)
+        .unwrap_or(U256::ZERO);
+    let liquidity = liquidity_value.to::<u128>();
+
     // Generate word positions to query based on tick spacing
     let word_positions = tick_math::generate_word_positions(tick_spacing);
 
@@ -107,7 +115,7 @@ pub fn read_v3_pool<TX: DbTx>(
         }
     }
 
-    Ok(PoolOutput::new_v3(pool.address, slot0, ticks, bitmaps))
+    Ok(PoolOutput::new_v3(pool.address, slot0, liquidity, ticks, bitmaps))
 }
 
 /// Read V4 pool data from reth database
@@ -129,6 +137,15 @@ pub fn read_v4_pool<TX: DbTx>(
         .unwrap_or(U256::ZERO);
 
     let slot0 = decoding::decode_slot0(slot0_value)?;
+
+    // Read liquidity for this poolId
+    let liquidity_slot = storage::v4_liquidity_slot(pool_id);
+    let liquidity_value = cursor
+        .seek_by_key_subkey(pool.address, liquidity_slot)?
+        .filter(|entry| entry.key == liquidity_slot)
+        .map(|entry| entry.value)
+        .unwrap_or(U256::ZERO);
+    let liquidity = liquidity_value.to::<u128>();
 
     // Generate word positions
     let word_positions = tick_math::generate_word_positions(tick_spacing);
@@ -181,5 +198,5 @@ pub fn read_v4_pool<TX: DbTx>(
         }
     }
 
-    Ok(PoolOutput::new_v4(pool.address, pool_id, slot0, ticks, bitmaps))
+    Ok(PoolOutput::new_v4(pool.address, pool_id, slot0, liquidity, ticks, bitmaps))
 }
