@@ -23,14 +23,20 @@ use crate::{
 
 /// Query storage value at a specific block number using changesets
 ///
-/// This function uses Reth's StoragesHistory index for efficient lookups:
-/// 1. Query StoragesHistory to find blocks where this storage slot changed
-/// 2. Find the most recent change at or before target block
-/// 3. Read the value from StorageChangeSets at that block
-/// 4. Falls back to current state if no history exists
+/// Returns the storage state AFTER the block executes (end of block), matching
+/// standard Ethereum RPC semantics (eth_getStorageAt behavior).
+///
+/// Algorithm:
+/// 1. Find the first changeset block STRICTLY GREATER than target block
+/// 2. That changeset contains the "before" value, which is the state at our target block
+/// 3. If no such changeset exists, use current PlainState (value hasn't changed since)
+///
+/// Example: If changes occurred at blocks [100, 200, 300] and we query block 150:
+/// - First changeset > 150 is block 200
+/// - Block 200's changeset has the value BEFORE block 200's transaction
+/// - That's the value that existed at blocks 151-199, including our target block 150
 ///
 /// Performance: O(log n) where n = number of changes to this slot
-/// (vs O(total_changesets) for naive iteration)
 pub fn get_storage_at_block<TX: DbTx>(
     tx: &TX,
     address: Address,
@@ -40,34 +46,27 @@ pub fn get_storage_at_block<TX: DbTx>(
     use reth_db::models::storage_sharded_key::StorageShardedKey;
 
     // Step 1: Use StoragesHistory index to find blocks where this slot changed
-    // The history key includes the block number for sharding purposes
     let history_key = StorageShardedKey::new(address, storage_key, block_number);
     let mut history_cursor = tx.cursor_read::<tables::StoragesHistory>()?;
 
-    // Seek to find the history chunk
     if let Some((key, block_list)) = history_cursor.seek(history_key)? {
-        // Verify this is the correct storage slot (seek returns next key if exact not found)
+        // Verify this is the correct storage slot
         if key.address == address && key.sharded_key.key == storage_key {
-            // Step 2: Use rank/select to find the highest block <= target block
-            // rank() returns the number of blocks <= our target
-            let mut rank = block_list.rank(block_number);
+            // Step 2: Find first changeset block STRICTLY GREATER than target
+            // rank() returns count of blocks <= target
+            let rank = block_list.rank(block_number);
 
-            // Adjust rank to get the block strictly before (not equal to) our target
-            if rank.checked_sub(1).and_then(|r| block_list.select(r)) == Some(block_number) {
-                rank -= 1;
-            }
-
+            // select(rank) gives us the (rank+1)th smallest element
+            // Since rank = count of elements <= target, select(rank) is the first element > target
             let change_block = block_list.select(rank);
 
-            // Step 3: If we found a relevant change, read it from StorageChangeSets
+            // Step 3: If found, read the "before" value from that changeset
             if let Some(change_block) = change_block {
                 let mut changeset_cursor = tx.cursor_dup_read::<tables::StorageChangeSets>()?;
 
-                // Use seek_by_key_subkey for efficient lookup
                 if let Some(entry) = changeset_cursor
                     .seek_by_key_subkey((change_block, address).into(), storage_key)?
                 {
-                    // Verify exact match (seek_by_key_subkey returns >= requested)
                     if entry.key == storage_key {
                         return Ok(entry.value);
                     }
@@ -76,7 +75,8 @@ pub fn get_storage_at_block<TX: DbTx>(
         }
     }
 
-    // Step 4: No history found - fall back to current state
+    // Step 4: No future change found - value hasn't changed since target block
+    // Use current PlainState
     let mut storage_cursor = tx.cursor_dup_read::<tables::PlainStorageState>()?;
     if let Some(entry) = storage_cursor.seek_by_key_subkey(address, storage_key)? {
         if entry.key == storage_key {
