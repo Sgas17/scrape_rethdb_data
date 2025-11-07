@@ -48,14 +48,13 @@ sol! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::U256;
     use alloy_sol_types::SolValue;
 
     #[test]
     fn test_reserves_abi_encoding() {
         let reserves = ReservesStorage {
-            reserve0: 1000u128.into(),
-            reserve1: 2000u128.into(),
+            reserve0: alloy_primitives::Uint::<112, 2>::from(1000u128),
+            reserve1: alloy_primitives::Uint::<112, 2>::from(1000u128),
             blockTimestampLast: 123456,
         };
 
@@ -63,18 +62,18 @@ mod tests {
         let encoded = reserves.abi_encode();
 
         // Can decode from ABI bytes
-        let decoded = ReservesStorage::abi_decode(&encoded, true).unwrap();
+        let decoded = ReservesStorage::abi_decode(&encoded).unwrap();
 
-        assert_eq!(decoded.reserve0, 1000u128.into());
-        assert_eq!(decoded.reserve1, 2000u128.into());
+        assert_eq!(decoded.reserve0, alloy_primitives::Uint::<112, 2>::from(1000u128));
+        assert_eq!(decoded.reserve1, alloy_primitives::Uint::<112, 2>::from(1000u128));
         assert_eq!(decoded.blockTimestampLast, 123456);
     }
 
     #[test]
     fn test_slot0_abi_encoding() {
         let slot0 = Slot0Storage {
-            sqrtPriceX96: U256::from(1000).try_into().unwrap(),
-            tick: -100,
+            sqrtPriceX96: alloy_primitives::Uint::<160, 3>::from(1000u128),
+            tick: alloy_primitives::Signed::<24, 1>::try_from(-100i32).unwrap(),
             observationIndex: 1,
             observationCardinality: 10,
             observationCardinalityNext: 20,
@@ -83,9 +82,9 @@ mod tests {
         };
 
         let encoded = slot0.abi_encode();
-        let decoded = Slot0Storage::abi_decode(&encoded, true).unwrap();
+        let decoded = Slot0Storage::abi_decode(&encoded).unwrap();
 
-        assert_eq!(decoded.tick, -100);
+        assert_eq!(decoded.tick, alloy_primitives::Signed::<24, 1>::try_from(-100i32).unwrap());
         assert_eq!(decoded.unlocked, true);
     }
 }

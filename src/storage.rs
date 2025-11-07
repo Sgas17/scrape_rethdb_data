@@ -95,6 +95,12 @@ pub fn v4_slot0_slot(pool_id: B256) -> B256 {
     add_offset(base_slot, v4::SLOT0_OFFSET)
 }
 
+/// Get base storage slot for a V4 pool
+/// This is the base slot where Pool.State struct begins for a given poolId
+pub fn v4_base_slot(pool_id: B256) -> B256 {
+    pool_base_slot(pool_id)
+}
+
 /// Helper: Get base storage slot for a V4 pool
 fn pool_base_slot(pool_id: B256) -> B256 {
     // Use alloy-sol-types for proper ABI encoding
@@ -166,7 +172,8 @@ mod tests {
 
     #[test]
     fn test_v4_slots() {
-        let pool_id = B256::random();
+        // Create a test pool ID (just use a constant for testing)
+        let pool_id = B256::from([0x42; 32]);
 
         let slot0 = v4_slot0_slot(pool_id);
         let tick_slot = v4_tick_slot(pool_id, 100);

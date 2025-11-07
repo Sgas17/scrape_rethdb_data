@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Reth database
+# Reth database - direct DB access only, no RPC
 reth-db = { git = "https://github.com/paradigmxyz/reth", features = ["mdbx"] }
 reth-primitives = { git = "https://github.com/paradigmxyz/reth" }
 
@@ -25,6 +25,9 @@ serde_json = "1.0"
 
 # Encoding/decoding
 hex = "0.4"
+
+# Environment variables
+dotenv = "0.15"
 
 # PostgreSQL
 tokio-postgres = "0.7"

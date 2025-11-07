@@ -1,6 +1,9 @@
 use alloy_primitives::{Address, B256, U256};
 use serde::{Deserialize, Serialize};
 
+// BlockNumber is just u64 in Reth
+pub type BlockNumber = u64;
+
 /// Pool protocol type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -163,4 +166,14 @@ impl PoolOutput {
             bitmaps,
         }
     }
+}
+
+/// Historical pool output with block number
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoricalPoolOutput {
+    /// The pool data at the specified block
+    #[serde(flatten)]
+    pub pool_data: PoolOutput,
+    /// Block number where this state was queried
+    pub block_number: BlockNumber,
 }

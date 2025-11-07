@@ -21,12 +21,12 @@ fn main() -> Result<()> {
     println!("Tick Spacing: {}", tick_spacing);
     println!();
 
-    // Create pool input
-    let pool_input = PoolInput::new_v4(pool_manager, pool_id, tick_spacing);
+    // Create pool input (V4 pools need tick_spacing like V3)
+    let pool_input = PoolInput::new_v4(pool_manager, tick_spacing);
 
-    // Collect data
+    // Collect data (pass pool_id via v4_pool_ids parameter)
     println!("Collecting data from database...");
-    let results = collect_pool_data(&db_path, &[pool_input], None)?;
+    let results = collect_pool_data(&db_path, &[pool_input], Some(&[pool_id]))?;
 
     if results.is_empty() {
         println!("✗ No data returned!");

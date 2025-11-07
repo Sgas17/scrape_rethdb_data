@@ -10,7 +10,7 @@
 ///
 /// Run on a machine with both Reth DB access and RPC access
 
-use alloy_primitives::{Address, B256, U256, aliases::I24, Signed};
+use alloy_primitives::{Address, B256, U256, aliases::I24};
 use alloy::{
     providers::{ProviderBuilder, Provider},
     sol,
