@@ -113,6 +113,9 @@ pub struct PoolOutput {
     pub reserves: Option<Reserves>,
     /// Slot0 data (only for V3/V4 pools)
     pub slot0: Option<Slot0>,
+    /// Liquidity (only for V3/V4 pools)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub liquidity: Option<u128>,
     /// Tick data (only for V3/V4 pools)
     pub ticks: Vec<Tick>,
     /// Bitmap data (only for V3/V4 pools)
@@ -127,6 +130,7 @@ impl PoolOutput {
             pool_id: None,
             reserves: Some(reserves),
             slot0: None,
+            liquidity: None,
             ticks: Vec::new(),
             bitmaps: Vec::new(),
         }
@@ -135,6 +139,7 @@ impl PoolOutput {
     pub fn new_v3(
         address: Address,
         slot0: Slot0,
+        liquidity: u128,
         ticks: Vec<Tick>,
         bitmaps: Vec<Bitmap>,
     ) -> Self {
@@ -144,6 +149,7 @@ impl PoolOutput {
             pool_id: None,
             reserves: None,
             slot0: Some(slot0),
+            liquidity: Some(liquidity),
             ticks,
             bitmaps,
         }
@@ -153,6 +159,7 @@ impl PoolOutput {
         address: Address,
         pool_id: B256,
         slot0: Slot0,
+        liquidity: u128,
         ticks: Vec<Tick>,
         bitmaps: Vec<Bitmap>,
     ) -> Self {
@@ -162,6 +169,7 @@ impl PoolOutput {
             pool_id: Some(pool_id),
             reserves: None,
             slot0: Some(slot0),
+            liquidity: Some(liquidity),
             ticks,
             bitmaps,
         }
