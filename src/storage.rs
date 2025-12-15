@@ -95,6 +95,12 @@ pub fn v4_slot0_slot(pool_id: B256) -> B256 {
     add_offset(base_slot, v4::SLOT0_OFFSET)
 }
 
+/// Calculate V4 liquidity storage slot
+pub fn v4_liquidity_slot(pool_id: B256) -> B256 {
+    let base_slot = pool_base_slot(pool_id);
+    add_offset(base_slot, v4::LIQUIDITY_OFFSET)
+}
+
 /// Get base storage slot for a V4 pool
 /// This is the base slot where Pool.State struct begins for a given poolId
 pub fn v4_base_slot(pool_id: B256) -> B256 {

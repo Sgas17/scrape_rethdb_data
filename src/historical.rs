@@ -101,7 +101,7 @@ pub fn read_v3_pool_at_block<TX: DbTx>(
     let slot0_value = get_storage_at_block(tx, pool.address, slot0_slot, block_number)?;
     let slot0 = decoding::decode_slot0(slot0_value)?;
 
-    // Read liquidity from slot 4
+    // Read liquidity at historical block
     let liquidity_slot = storage::simple_slot(v3::LIQUIDITY);
     let liquidity_value = get_storage_at_block(tx, pool.address, liquidity_slot, block_number)?;
     let liquidity = liquidity_value.to::<u128>();
@@ -190,7 +190,7 @@ pub fn read_v4_pool_at_block<TX: DbTx>(
     // Decode V4 slot0 (same structure as V3)
     let slot0 = decoding::decode_slot0(slot0_value)?;
 
-    // Read liquidity for this poolId
+    // Read liquidity at historical block (base_slot + 3)
     let liquidity_slot = crate::storage::v4_liquidity_slot(pool_id);
     let liquidity_value = get_storage_at_block(tx, pool.address, liquidity_slot, block_number)?;
     let liquidity = liquidity_value.to::<u128>();

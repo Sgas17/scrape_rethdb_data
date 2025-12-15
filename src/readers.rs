@@ -55,7 +55,7 @@ pub fn read_v3_pool<TX: DbTx>(
 
     let slot0 = decoding::decode_slot0(slot0_value)?;
 
-    // Read liquidity from slot 4
+    // Read liquidity (stored as u128 in the lower 128 bits of slot 4)
     let liquidity_slot = storage::simple_slot(v3::LIQUIDITY);
     let liquidity_value = cursor
         .seek_by_key_subkey(pool.address, liquidity_slot)?
@@ -138,11 +138,11 @@ pub fn read_v4_pool<TX: DbTx>(
 
     let slot0 = decoding::decode_slot0(slot0_value)?;
 
-    // Read liquidity for this poolId
+    // Read liquidity for this poolId (stored as u128 in lower 128 bits)
     let liquidity_slot = storage::v4_liquidity_slot(pool_id);
     let liquidity_value = cursor
         .seek_by_key_subkey(pool.address, liquidity_slot)?
-        .filter(|entry| entry.key == liquidity_slot)
+        .filter(|entry| entry.key == liquidity_slot)  // Verify exact match!
         .map(|entry| entry.value)
         .unwrap_or(U256::ZERO);
     let liquidity = liquidity_value.to::<u128>();
