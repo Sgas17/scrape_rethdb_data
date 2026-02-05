@@ -218,6 +218,7 @@ fn collect_pools_at_block(
                 address,
                 protocol,
                 tick_spacing,
+                slot0_only: false,
             })
         })
         .collect();

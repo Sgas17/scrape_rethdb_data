@@ -1,10 +1,10 @@
 use alloy_primitives::{Address, B256, U256};
 use serde::{Deserialize, Serialize};
 
-// BlockNumber is just u64 in Reth
+/// `BlockNumber` is just u64 in Reth.
 pub type BlockNumber = u64;
 
-/// Pool protocol type
+/// Pool protocol type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Protocol {
@@ -16,16 +16,17 @@ pub enum Protocol {
     UniswapV4,
 }
 
-/// Input configuration for a single pool
+/// Input configuration for a single pool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PoolInput {
     pub address: Address,
     pub protocol: Protocol,
-    /// Tick spacing (required for V3/V4, ignored for V2)
+    /// Tick spacing (required for V3/V4, ignored for V2).
     pub tick_spacing: Option<i32>,
-    /// If true, only collect slot0 + liquidity (skip ticks/bitmaps for fast filtering)
-    #[serde(default)]
-    pub slot0_only: bool,
+    /// Factory address (used for V3 to determine storage layout).
+    /// PancakeSwap V3 has different storage slots than Uniswap/SushiSwap V3.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub factory: Option<Address>,
 }
 
 impl PoolInput {
@@ -34,7 +35,7 @@ impl PoolInput {
             address,
             protocol: Protocol::UniswapV2,
             tick_spacing: None,
-            slot0_only: false,
+            factory: None,
         }
     }
 
@@ -43,7 +44,17 @@ impl PoolInput {
             address,
             protocol: Protocol::UniswapV3,
             tick_spacing: Some(tick_spacing),
-            slot0_only: false,
+            factory: None,
+        }
+    }
+
+    /// Create a V3 pool input with factory address for correct storage layout.
+    pub fn new_v3_with_factory(address: Address, tick_spacing: i32, factory: Address) -> Self {
+        Self {
+            address,
+            protocol: Protocol::UniswapV3,
+            tick_spacing: Some(tick_spacing),
+            factory: Some(factory),
         }
     }
 
@@ -52,15 +63,15 @@ impl PoolInput {
             address,
             protocol: Protocol::UniswapV4,
             tick_spacing: Some(tick_spacing),
-            slot0_only: false,
+            factory: None,
         }
     }
 }
 
-/// UniswapV3/V4 Slot0 data
+/// UniswapV3/V4 Slot0 data.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Slot0 {
-    /// Raw storage value as hex string for Python decoding
+    /// Raw storage value as hex string for debugging.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_data: Option<String>,
     pub sqrt_price_x96: U256,
@@ -72,11 +83,11 @@ pub struct Slot0 {
     pub unlocked: bool,
 }
 
-/// Tick data for V3/V4 pools
+/// Tick data for V3/V4 pools.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Tick {
     pub tick: i32,
-    /// Raw storage value as hex string for Python decoding
+    /// Raw storage value as hex string for debugging.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_data: Option<String>,
     pub liquidity_gross: u128,
@@ -89,17 +100,17 @@ pub struct Tick {
     pub initialized: bool,
 }
 
-/// Bitmap data for a word position
+/// Bitmap data for a word position.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bitmap {
     pub word_pos: i16,
     pub bitmap: U256,
 }
 
-/// UniswapV2 reserve data
+/// `UniswapV2` reserve data.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Reserves {
-    /// Raw storage value as hex string for Python decoding
+    /// Raw storage value as hex string for debugging.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_data: Option<String>,
     pub reserve0: u128,
@@ -107,24 +118,24 @@ pub struct Reserves {
     pub block_timestamp_last: u32,
 }
 
-/// Complete output data for a single pool
+/// Complete output data for a single pool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PoolOutput {
     pub address: Address,
     pub protocol: Protocol,
-    /// Pool ID (only for V4 pools)
+    /// Pool ID (only for V4 pools).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pool_id: Option<B256>,
-    /// V2 reserves (only for V2 pools)
+    /// V2 reserves (only for V2 pools).
     pub reserves: Option<Reserves>,
-    /// Slot0 data (only for V3/V4 pools)
+    /// Slot0 data (only for V3/V4 pools).
     pub slot0: Option<Slot0>,
-    /// Current liquidity (only for V3/V4 pools)
+    /// Liquidity (only for V3/V4 pools).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub liquidity: Option<u128>,
-    /// Tick data (only for V3/V4 pools)
+    /// Tick data (only for V3/V4 pools).
     pub ticks: Vec<Tick>,
-    /// Bitmap data (only for V3/V4 pools)
+    /// Bitmap data (only for V3/V4 pools).
     pub bitmaps: Vec<Bitmap>,
 }
 
@@ -182,12 +193,12 @@ impl PoolOutput {
     }
 }
 
-/// Historical pool output with block number
+/// Historical pool output with block number.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HistoricalPoolOutput {
-    /// The pool data at the specified block
+    /// The pool data at the specified block.
     #[serde(flatten)]
     pub pool_data: PoolOutput,
-    /// Block number where this state was queried
+    /// Block number where this state was queried.
     pub block_number: BlockNumber,
 }

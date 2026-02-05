@@ -2,7 +2,6 @@ pub mod contracts;
 pub mod decoding;
 pub mod events;
 pub mod historical;
-pub mod pool_state;
 pub mod readers;
 pub mod storage;
 pub mod tick_math;
@@ -41,7 +40,7 @@ pub use types::{Bitmap, HistoricalPoolOutput, PoolInput, PoolOutput, Protocol, R
 ///         address: "0x1234...".parse().unwrap(),
 ///         protocol: Protocol::UniswapV3,
 ///         tick_spacing: Some(60),
-///         slot0_only: false,
+///         factory: None,
 ///     },
 /// ];
 ///
@@ -67,13 +66,7 @@ pub fn collect_pool_data(
                 results.push(output);
             }
             Protocol::UniswapV3 => {
-                let output = if pool.slot0_only {
-                    // Lightweight read: only slot0 + liquidity
-                    pool_state::read_v3_pool_state(&tx, pool)?
-                } else {
-                    // Full read: slot0 + liquidity + ticks + bitmaps
-                    readers::read_v3_pool(&tx, pool)?
-                };
+                let output = readers::read_v3_pool(&tx, pool)?;
                 results.push(output);
             }
             Protocol::UniswapV4 => {
@@ -92,13 +85,7 @@ pub fn collect_pool_data(
                 let pool_id = pool_ids[v4_pool_id_idx];
                 v4_pool_id_idx += 1;
 
-                let output = if pool.slot0_only {
-                    // Lightweight read: only slot0 + liquidity
-                    pool_state::read_v4_pool_state(&tx, pool, pool_id)?
-                } else {
-                    // Full read: slot0 + liquidity + ticks + bitmaps
-                    readers::read_v4_pool(&tx, pool, pool_id)?
-                };
+                let output = readers::read_v4_pool(&tx, pool, pool_id)?;
                 results.push(output);
             }
         }
@@ -121,6 +108,30 @@ pub fn collect_single_pool(
     )?;
 
     results.into_iter().next().ok_or_else(|| eyre!("No results returned"))
+}
+
+/// Collect only slot0 + liquidity for a single V3/V4 pool (no ticks/bitmaps).
+///
+/// ~50-200x faster than full pool scrape. Useful for:
+/// - Price/tick monitoring
+/// - Liquidity checks
+/// - Initial filtering before full scrape
+pub fn collect_slot0_only(
+    db_path: impl AsRef<Path>,
+    pool: &PoolInput,
+    v4_pool_id: Option<B256>,
+) -> Result<PoolOutput> {
+    let db = open_db_read_only(db_path.as_ref(), Default::default())?;
+    let tx = db.tx()?;
+
+    match pool.protocol {
+        Protocol::UniswapV3 => readers::read_v3_slot0_only(&tx, pool),
+        Protocol::UniswapV4 => {
+            let pool_id = v4_pool_id.ok_or_else(|| eyre!("V4 pool requires pool_id"))?;
+            readers::read_v4_slot0_only(&tx, pool, pool_id)
+        }
+        Protocol::UniswapV2 => Err(eyre!("collect_slot0_only only supports V3/V4 pools")),
+    }
 }
 
 /// Helper to collect data from multiple V3 pools efficiently
